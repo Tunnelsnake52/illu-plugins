@@ -40,6 +40,7 @@ import net.runelite.api.GameState;
 import net.runelite.api.ItemID;
 import net.runelite.api.MenuEntry;
 import net.runelite.api.MenuOpcode;
+import static net.runelite.api.MenuOpcode.ITEM_USE_ON_GAME_OBJECT;
 import net.runelite.api.ObjectID;
 import net.runelite.api.Player;
 import net.runelite.api.Point;
@@ -483,7 +484,7 @@ public class iCombinationRunecrafterPlugin extends Plugin
 		{
 			if (inventory.containsAllOf(REQUIRED_ITEMS))
 			{
-				return (setTalisman) ? USE_FIRE_ALTAR : SET_TALISMAN;
+				return USE_FIRE_ALTAR;
 			}
 			else
 			{
@@ -576,37 +577,25 @@ public class iCombinationRunecrafterPlugin extends Plugin
 					timeout = tickDelay();
 					break;
 				case ENTER_MYSTERIOUS_RUINS:
-					targetMenu = new MenuEntry("", "", 34817, MenuOpcode.GAME_OBJECT_FIRST_OPTION.getId(),
-						mysteriousRuins.getSceneMinLocation().getX(), mysteriousRuins.getSceneMinLocation().getY(), false);
-					menu.setEntry(targetMenu);
-					mouse.delayMouseClick(mysteriousRuins.getConvexHull().getBounds(), sleepDelay());
+					utils.doGameObjectActionMsTime(mysteriousRuins, MenuOpcode.GAME_OBJECT_FIRST_OPTION.getId(), sleepDelay());
 					timeout = tickDelay();
 					break;
 				case TELEPORT_CASTLE_WARS:
 					teleportRingOfDueling(3);
 					timeout = tickDelay();
 					break;
-				case SET_TALISMAN:
-					WidgetItem airTalisman = inventory.getWidgetItem(talismanID);
-					targetMenu = new MenuEntry("Use", "Use", talismanID, MenuOpcode.ITEM_USE.getId(),
-						airTalisman.getIndex(), 9764864, false);
-					menu.setEntry(targetMenu);
-					mouse.delayMouseClick(airTalisman.getCanvasBounds(), sleepDelay());
-					setTalisman = true;
-					break;
 				case USE_FIRE_ALTAR:
-					targetMenu = new MenuEntry("Use", "<col=ff9040>Air talisman<col=ffffff> -> <col=ffff>Altar",
-						fireAltar.getId(), MenuOpcode.ITEM_USE_ON_GAME_OBJECT.getId(), fireAltar.getSceneMinLocation().getX(),
-						fireAltar.getSceneMinLocation().getY(), false);
-					menu.setEntry(targetMenu);
-					mouse.delayMouseClick(fireAltar.getConvexHull().getBounds(), sleepDelay());
-					timeout = tickDelay();
+					WidgetItem airTalisman = inventory.getWidgetItem(talismanID);
+					if (airTalisman != null)
+					{
+						targetMenu = new MenuEntry("", "", fireAltar.getId(), ITEM_USE_ON_GAME_OBJECT.getId(),
+							fireAltar.getSceneMinLocation().getX(), fireAltar.getSceneMinLocation().getY(), false);
+						utils.doModifiedActionMsTime(targetMenu, airTalisman.getId(), airTalisman.getIndex(), ITEM_USE_ON_GAME_OBJECT.getId(), fireAltar.getConvexHull().getBounds(), sleepDelay());
+						timeout = tickDelay();
+					}
 					break;
 				case OPEN_BANK:
-					targetMenu = new MenuEntry("", "", bankChest.getId(), MenuOpcode.GAME_OBJECT_FIRST_OPTION.getId(),
-						bankChest.getSceneMinLocation().getX(), bankChest.getSceneMinLocation().getY(), false);
-					menu.setEntry(targetMenu);
-					mouse.delayMouseClick(bankChest.getConvexHull().getBounds(), sleepDelay());
+					utils.doGameObjectActionMsTime(bankChest, MenuOpcode.GAME_OBJECT_FIRST_OPTION.getId(), sleepDelay());
 					timeout = tickDelay();
 					break;
 				case TELEPORT_DUEL_ARENA:
@@ -626,10 +615,9 @@ public class iCombinationRunecrafterPlugin extends Plugin
 						{
 							totalStaminaPots++;
 						}
-						targetMenu = new MenuEntry("", "", 9, MenuOpcode.CC_OP_LOW_PRIORITY.getId(),
+						MenuEntry targetMenu = new MenuEntry("", "", 9, MenuOpcode.CC_OP_LOW_PRIORITY.getId(),
 							useableItem.getIndex(), 983043, true);
-						menu.setEntry(targetMenu);
-						mouse.delayMouseClick(useableItem.getCanvasBounds(), sleepDelay());
+						utils.doActionMsTime(targetMenu, new Point(0, 0), sleepDelay());
 					}
 					break;
 				case WITHDRAW_ITEM:
